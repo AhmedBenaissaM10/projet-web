@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizWeb</title>
+  <meta name="description" content="Quiz interactif sur HTML, CSS et JavaScript : choix des thèmes, nombre de questions, ajout de ses propres questions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Aller au contenu</a>
+
+<header class="site-header">
+  <span class="logo" aria-hidden="true">&lt;/&gt;</span>
+  <span class="brand">QuizWeb</span>
+</header>
+
+<main id="main" class="container">
+
+  <!-- ===== Menu (accueil) ===== -->
+  <section id="screen-home" class="card screen active" aria-labelledby="home-title">
+    <p class="eyebrow">HTML5 · CSS3 · JavaScript</p>
+    <h1 id="home-title">Le quiz du développeur web</h1>
+    <p class="lead">Choisis un thème et le nombre de questions. Tu vois la bonne réponse tout de suite, avec une courte explication, et ton score évolue en direct.</p>
+
+    <form id="setup-form" novalidate>
+      <fieldset class="field">
+        <legend>Thèmes (un ou plusieurs)</legend>
+        <div class="segmented" id="topic-group">
+          <div class="seg">
+            <input type="checkbox" id="topic-all" checked>
+            <label for="topic-all">Tous <span class="n" data-n="all"></span></label>
+          </div>
+          <div class="seg">
+            <input type="checkbox" name="topic" id="topic-html" value="html" checked>
+            <label for="topic-html">HTML <span class="n" data-n="html"></span></label>
+          </div>
+          <div class="seg">
+            <input type="checkbox" name="topic" id="topic-css" value="css" checked>
+            <label for="topic-css">CSS <span class="n" data-n="css"></span></label>
+          </div>
+          <div class="seg">
+            <input type="checkbox" name="topic" id="topic-js" value="js" checked>
+            <label for="topic-js">JavaScript <span class="n" data-n="js"></span></label>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label class="lbl" for="count">Nombre de questions</label>
+        <div class="range-row">
+          <input type="range" id="count" min="1" max="8" value="8">
+          <output id="count-out" for="count">8</output>
+        </div>
+        <p class="hint" id="pool-info"></p>
+      </div>
+
+      <div class="actions">
+        <button id="btn-start" class="btn btn-primary" type="submit">Commencer le quiz</button>
+        <button id="btn-add" class="btn btn-secondary" type="button">Ajouter une question</button>
+      </div>
+    </form>
+
+    <p class="keys-hint">Pendant le quiz, les touches <kbd>1</kbd> à <kbd>4</kbd> choisissent une réponse.</p>
+  </section>
+
+  <!-- ===== Ajouter une question ===== -->
+  <section id="screen-add" class="card screen" aria-labelledby="add-title" hidden>
+    <p class="eyebrow">Mes questions</p>
+    <h2 id="add-title" tabindex="-1">Ajouter une question</h2>
+
+    <form id="add-form" class="form-grid" novalidate>
+      <div>
+        <label for="new-topic">Thème</label>
+        <select id="new-topic">
+          <option value="html">HTML</option>
+          <option value="css">CSS</option>
+          <option value="js">JavaScript</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="new-q">Question</label>
+        <textarea id="new-q" rows="2" maxlength="240" placeholder="Ex. Quelle balise définit le titre principal d'une page ?"></textarea>
+      </div>
+
+      <fieldset class="field opts">
+        <legend>Réponses (2 minimum)</legend>
+        <div class="opts-grid">
+          <div><label for="new-o0">Réponse A</label><input type="text" id="new-o0" maxlength="120" autocomplete="off"></div>
+          <div><label for="new-o1">Réponse B</label><input type="text" id="new-o1" maxlength="120" autocomplete="off"></div>
+          <div><label for="new-o2">Réponse C</label><input type="text" id="new-o2" maxlength="120" autocomplete="off"></div>
+          <div><label for="new-o3">Réponse D</label><input type="text" id="new-o3" maxlength="120" autocomplete="off"></div>
+        </div>
+      </fieldset>
+
+      <div>
+        <label for="new-answer">Bonne réponse</label>
+        <select id="new-answer">
+          <option value="0">A</option>
+          <option value="1">B</option>
+          <option value="2">C</option>
+          <option value="3">D</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="new-explain">Explication (facultatif)</label>
+        <input type="text" id="new-explain" maxlength="240" autocomplete="off" placeholder="Affichée après la réponse">
+      </div>
+
+      <p id="add-status" class="status" role="status" aria-live="polite"></p>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="submit">Ajouter la question</button>
+        <button id="btn-back" class="btn btn-secondary" type="button">Retour au menu</button>
+      </div>
+    </form>
+
+    <h3 class="list-title">Questions ajoutées</h3>
+    <p class="hint" id="custom-empty">Aucune question ajoutée pour le moment.</p>
+    <ul class="custom-list" id="custom-list"></ul>
+  </section>
+
+  <!-- ===== Interface de quiz ===== -->
+  <section id="screen-quiz" class="card screen" aria-labelledby="question-text" hidden>
+    <button id="btn-quit" class="btn-text" type="button">&larr; Retour au menu</button>
+
+    <div class="quiz-top">
+      <p class="counter" id="counter" aria-live="polite">Question 1 / 8</p>
+      <p class="live-score" aria-live="polite">Score <strong id="live-score">0</strong></p>
+    </div>
+
+    <div class="progress" role="progressbar" aria-label="Progression du quiz"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <h2 id="question-text" class="question" tabindex="-1"></h2>
+
+    <div id="answers" class="answers" role="group" aria-labelledby="question-text"></div>
+
+    <div id="feedback" class="feedback" role="status" aria-live="assertive" hidden></div>
+
+    <button id="btn-next" class="btn btn-primary" type="button" hidden>Question suivante</button>
+  </section>
+
+  <!-- ===== Résultats ===== -->
+  <section id="screen-result" class="card screen" aria-labelledby="result-title" hidden>
+    <p class="eyebrow" id="result-emoji">Résultat</p>
+    <h2 id="result-title" tabindex="-1">Quiz terminé</h2>
+
+    <div class="score-ring" id="score-ring" role="img" aria-label="Score final">
+      <span id="final-score">0/8</span>
+    </div>
+
+    <p id="result-message" class="lead"></p>
+
+    <details class="review">
+      <summary>Voir le détail de mes réponses</summary>
+      <ol id="review-list"></ol>
+    </details>
+
+    <div class="actions">
+      <button id="btn-restart" class="btn btn-primary" type="button">Rejouer</button>
+      <button id="btn-menu" class="btn btn-secondary" type="button">Retour au menu</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <small>Projet HTML5 · CSS3 · JavaScript</small>
+</footer>
+
+<script src="js/script.js"></script>
+</body>
+</html>
