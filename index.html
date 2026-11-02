@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuizWeb</title>
-  <meta name="description" content="Quiz interactif sur HTML, CSS et JavaScript : choix des thèmes, nombre de questions, ajout de ses propres questions.">
+  <meta name="description" content="Quiz interactif sur HTML, CSS et JavaScript : QCM et Vrai/Faux, chrono, score avec pénalité de temps, meilleurs scores et ajout de ses propres questions.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -24,7 +24,7 @@
   <section id="screen-home" class="card screen active" aria-labelledby="home-title">
     <p class="eyebrow">HTML5 · CSS3 · JavaScript</p>
     <h1 id="home-title">Le quiz du développeur web</h1>
-    <p class="lead">Choisis un thème et le nombre de questions. Tu vois la bonne réponse tout de suite, avec une courte explication, et ton score évolue en direct.</p>
+    <p class="lead">Choisis un thème et le nombre de questions. Chaque question a un chrono de 20 secondes : plus tu réponds vite, plus tu marques de points. La bonne réponse est dévoilée tout de suite.</p>
 
     <form id="setup-form" novalidate>
       <fieldset class="field">
@@ -64,7 +64,14 @@
       </div>
     </form>
 
-    <p class="keys-hint">Pendant le quiz, les touches <kbd>1</kbd> à <kbd>4</kbd> choisissent une réponse.</p>
+    <p class="keys-hint">Pendant le quiz : <kbd>1</kbd> à <kbd>4</kbd> pour un QCM, <kbd>V</kbd> / <kbd>F</kbd> pour un Vrai/Faux.</p>
+
+    <!-- Meilleurs scores (localStorage) -->
+    <section class="best" aria-labelledby="best-title">
+      <h2 id="best-title" class="list-title">Meilleurs scores</h2>
+      <p class="hint" id="best-empty">Aucun score enregistré pour le moment.</p>
+      <ol class="best-list" id="best-list" hidden></ol>
+    </section>
   </section>
 
   <!-- ===== Ajouter une question ===== -->
@@ -73,6 +80,14 @@
     <h2 id="add-title" tabindex="-1">Ajouter une question</h2>
 
     <form id="add-form" class="form-grid" novalidate>
+      <div>
+        <label for="new-type">Type de question</label>
+        <select id="new-type">
+          <option value="qcm">QCM (2 à 4 réponses)</option>
+          <option value="truefalse">Vrai / Faux</option>
+        </select>
+      </div>
+
       <div>
         <label for="new-topic">Thème</label>
         <select id="new-topic">
@@ -87,7 +102,7 @@
         <textarea id="new-q" rows="2" maxlength="240" placeholder="Ex. Quelle balise définit le titre principal d'une page ?"></textarea>
       </div>
 
-      <fieldset class="field opts">
+      <fieldset class="field opts" id="new-options-field">
         <legend>Réponses (2 minimum)</legend>
         <div class="opts-grid">
           <div><label for="new-o0">Réponse A</label><input type="text" id="new-o0" maxlength="120" autocomplete="off"></div>
@@ -130,8 +145,17 @@
     <button id="btn-quit" class="btn-text" type="button">&larr; Retour au menu</button>
 
     <div class="quiz-top">
-      <p class="counter" id="counter" aria-live="polite">Question 1 / 8</p>
-      <p class="live-score" aria-live="polite">Score <strong id="live-score">0</strong></p>
+      <div class="quiz-top-info">
+        <p class="counter" id="counter" aria-live="polite">Question 1 / 8</p>
+        <p class="live-score">Score <strong id="live-score">0</strong> <span class="unit">pts</span></p>
+      </div>
+
+      <div class="timer" id="timer" role="timer" aria-live="off" aria-label="Temps restant : 20 secondes">
+        <span class="timer-value" id="timer-value">20</span>
+        <div class="timer-track" aria-hidden="true">
+          <div class="timer-bar" id="timer-bar"></div>
+        </div>
+      </div>
     </div>
 
     <div class="progress" role="progressbar" aria-label="Progression du quiz"
@@ -139,9 +163,10 @@
       <div class="progress-bar" id="progress-bar"></div>
     </div>
 
-    <h2 id="question-text" class="question" tabindex="-1"></h2>
-
-    <div id="answers" class="answers" role="group" aria-labelledby="question-text"></div>
+    <div class="question-body" id="question-body">
+      <h2 id="question-text" class="question" tabindex="-1"></h2>
+      <div id="answers" class="answers" role="group" aria-labelledby="question-text"></div>
+    </div>
 
     <div id="feedback" class="feedback" role="status" aria-live="assertive" hidden></div>
 
@@ -150,13 +175,12 @@
 
   <!-- ===== Résultats ===== -->
   <section id="screen-result" class="card screen" aria-labelledby="result-title" hidden>
-    <p class="eyebrow" id="result-emoji">Résultat</p>
+    <p class="eyebrow" id="result-grade">Résultat</p>
     <h2 id="result-title" tabindex="-1">Quiz terminé</h2>
 
-    <div class="score-ring" id="score-ring" role="img" aria-label="Score final">
-      <span id="final-score">0/8</span>
-    </div>
-
+    <p class="final-score" id="final-score" role="img" aria-label="Score final">0 pts</p>
+    <p class="result-sub" id="result-sub"></p>
+    <p class="result-best" id="result-best"></p>
     <p id="result-message" class="lead"></p>
 
     <details class="review">
@@ -176,6 +200,6 @@
   <small>Projet HTML5 · CSS3 · JavaScript</small>
 </footer>
 
-<script src="js/script.js"></script>
+<script src="js/script.js" defer></script>
 </body>
 </html>
