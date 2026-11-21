@@ -383,6 +383,7 @@ const QUESTIONS = [
 const state = {
   custom: loadCustomQuestions(),
   bestScores: loadBestScores(),
+  serverQuestions: [],
   deck: [],
   index: 0,
   score: 0,
@@ -406,6 +407,7 @@ const el = {
   count: byId("count"),
   countOut: byId("count-out"),
   poolInfo: byId("pool-info"),
+  playerName: byId("player-name"),
   btnStart: byId("btn-start"),
   btnAdd: byId("btn-add"),
   bestList: byId("best-list"),
@@ -512,6 +514,52 @@ function writeStorage(key, value) {
   }
 }
 
+async function api(action, body = null) {
+  const options = body
+    ? {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...body }),
+      }
+    : { method: "GET" };
+  const url = body ? "php/api.php" : `php/api.php?action=${encodeURIComponent(action)}`;
+  const response = await fetch(url, options);
+  const text = await response.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    const detail = text.replace(/<[^>]*>/g, " ").trim();
+    throw new Error(
+      detail
+        ? `Reponse invalide du serveur : ${detail.slice(0, 180)}`
+        : "Le serveur PHP n'a renvoye aucune reponse JSON.",
+    );
+  }
+  if (!response.ok) {
+    throw new Error(
+      data.detail
+        ? `${data.error} ${data.detail}`
+        : (data.error || "Erreur avec le serveur."),
+    );
+  }
+  return data;
+}
+
+async function loadFromServer() {
+  try {
+    const data = await api("load");
+    state.serverQuestions = Array.isArray(data.questions) ? data.questions : [];
+    if (Array.isArray(data.scores) && data.scores.length) {
+      state.bestScores = data.scores;
+      writeStorage(STORAGE_BEST, data.scores);
+    }
+  } catch (error) {
+    console.warn(error.message);
+  }
+  refreshMenu();
+}
+
 /* ============ Questions personnalisées : stockage ============ */
 function isValidQuestion(item) {
   if (!item || typeof item.q !== "string" || !TOPICS[item.topic]) return false;
@@ -579,6 +627,7 @@ function showScreen(name) {
 
 /* ============ 7. Menu ============ */
 function allQuestions() {
+  if (state.serverQuestions.length) return state.serverQuestions;
   return QUESTIONS.concat(state.custom);
 }
 
@@ -646,6 +695,13 @@ function renderBestScores() {
     rank.className = "best-rank";
     rank.textContent = String(index + 1);
 
+    const name = document.createElement("strong");
+    name.className = "best-name";
+    name.textContent =
+      typeof score.username === "string" && score.username.trim()
+        ? score.username
+        : "Anonyme";
+
     const points = document.createElement("strong");
     points.className = "best-points";
     points.textContent = `${score.points} pts`;
@@ -654,13 +710,13 @@ function renderBestScores() {
     detail.className = "best-detail";
     detail.textContent = `${score.correct}/${score.total} · ${formatDate(score.date)}`;
 
-    item.append(rank, points, detail);
+    item.append(rank, name, points, detail);
     el.bestList.appendChild(item);
   });
 }
 
 /* ============ 8. Quiz ============ */
-function startQuiz() {
+async function startQuiz() {
   const pool = poolFor(selectedTopics());
   if (pool.length === 0) return;
 
@@ -671,6 +727,14 @@ function startQuiz() {
   state.score = 0;
   state.history = [];
   state.locked = false;
+
+  if (pool.some((question) => question.id)) {
+    try {
+      await api("start");
+    } catch (error) {
+      console.warn(error.message);
+    }
+  }
 
   showScreen("quiz");
   showQuestion();
@@ -767,20 +831,32 @@ function answerQuestion(index) {
   );
   stopTimer();
 
+  if (question.id) {
+    state.locked = true;
+    api("answer", { id: question.id, selected: index, elapsed })
+      .then((result) => {
+        const entry = {
+          question: question,
+          selected: index,
+          correct: result.correct,
+          points: result.points,
+          reason: result.correct ? "correct" : "wrong",
+        };
+        state.score = result.score;
+        state.history.push(entry);
+        showAnswer(entry);
+      })
+      .catch(() => {
+        state.locked = false;
+      });
+    return;
+  }
+
   const correct = index === question.answer;
   const points = correct ? computePoints(elapsed) : 0;
-
   state.score += points;
   state.locked = true;
-
-  const entry = {
-    question: question,
-    selected: index,
-    correct: correct,
-    points: points,
-    reason: correct ? "correct" : "wrong",
-  };
-
+  const entry = { question, selected: index, correct, points, reason: correct ? "correct" : "wrong" };
   state.history.push(entry);
   showAnswer(entry);
 }
@@ -789,8 +865,9 @@ function timeOutQuestion() {
   if (state.locked || !state.deck[state.index]) return;
 
   state.locked = true;
+  const question = state.deck[state.index];
   const entry = {
-    question: state.deck[state.index],
+    question,
     selected: null,
     correct: false,
     points: 0,
@@ -799,6 +876,19 @@ function timeOutQuestion() {
 
   state.history.push(entry);
   stopTimer();
+  if (question.id) {
+    api("answer", {
+      id: question.id,
+      reason: "timeout",
+      elapsed: TIMER_SECONDS * 1000,
+    })
+      .then((result) => {
+        state.score = result.score;
+        entry.question.answer = result.correctAnswer;
+        entry.question.explain = result.explanation;
+      })
+      .catch(() => {});
+  }
   showAnswer(entry);
 }
 
@@ -880,7 +970,21 @@ function finishQuiz() {
 
   renderReview();
 
-  if (state.score > 0) {
+  if (state.deck.some((question) => question.id)) {
+    api("finish", {
+      username: el.playerName ? el.playerName.value.trim() : "",
+      total,
+      points: state.score,
+      correct,
+    }).then((result) => {
+      state.bestScores = result.scores || [];
+      writeStorage(STORAGE_BEST, state.bestScores);
+      renderBestScores();
+      el.resultBest.textContent = state.bestScores[0]
+        ? `Meilleur score : ${state.bestScores[0].points} pts`
+        : "";
+    }).catch((error) => console.warn(error.message));
+  } else {
     state.bestScores = saveBestScore({
       points: state.score,
       correct: correct,
@@ -998,27 +1102,28 @@ function addQuestionFromForm(event) {
     answer = slots.slice(0, chosen).filter((slot) => slot !== "").length;
   }
 
-  state.custom.push({
+  const question = {
     topic: el.newTopic.value,
     type: type,
     q: text,
     options: options,
     answer: answer,
     explain: explain,
-  });
+  };
 
-  const saved = saveCustomQuestions();
-  renderCustomList();
-  refreshMenu();
-  clearQuestionForm();
-
-  setAddStatus(
-    saved
-      ? "Question ajoutée. Elle sera proposée dans le quiz."
-      : "Question ajoutée pour cette session, mais pas enregistrée sur cet appareil.",
-    saved ? "ok" : "err",
-  );
-  el.newQ.focus();
+  api("add", question)
+    .then((result) => {
+      question.id = result.id;
+      state.custom.push(question);
+      state.serverQuestions.push(question);
+      saveCustomQuestions();
+      renderCustomList();
+      refreshMenu();
+      clearQuestionForm();
+      setAddStatus("Question ajoutee et enregistree dans MySQL.", "ok");
+      el.newQ.focus();
+    })
+    .catch((error) => setAddStatus(error.message, "err"));
 }
 
 function clearQuestionForm() {
@@ -1068,11 +1173,23 @@ function renderCustomList() {
 }
 
 function deleteCustomQuestion(index) {
-  state.custom.splice(index, 1);
-  saveCustomQuestions();
-  renderCustomList();
-  refreshMenu();
-  setAddStatus("Question supprimée.", "ok");
+  const question = state.custom[index];
+  const removeFromServer = question && question.id
+    ? api("delete", { id: question.id })
+    : Promise.resolve();
+
+  removeFromServer
+    .then(() => {
+      state.custom.splice(index, 1);
+      if (question && question.id) {
+        state.serverQuestions = state.serverQuestions.filter((item) => item.id !== question.id);
+      }
+      saveCustomQuestions();
+      renderCustomList();
+      refreshMenu();
+      setAddStatus("Question supprimée.", "ok");
+    })
+    .catch((error) => setAddStatus(error.message, "err"));
 }
 
 function openAddScreen() {
@@ -1149,6 +1266,7 @@ function init() {
   renderCustomList();
   refreshMenu();
   showScreen("home");
+  loadFromServer();
 }
 
 init();
