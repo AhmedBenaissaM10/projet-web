@@ -338,6 +338,11 @@ input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--acc
   font-size: .85rem;
   font-weight: 700;
 }
+.best-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
 .best-points { font-family: var(--font-mono); font-size: .95rem; }
 .best-detail { margin-left: auto; color: var(--muted); font-size: .8rem; text-align: right; }
 
