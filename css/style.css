@@ -287,6 +287,15 @@ kbd {
 }
 
 .hint { margin: .4rem 0 0; color: var(--muted); font-size: .9rem; }
+.hint.error {
+  margin-top: .75rem;
+  padding: .75rem 1rem;
+  border: 2px solid var(--bad);
+  border-radius: 10px;
+  background: var(--bad-bg);
+  color: var(--bad-ink);
+  font-weight: 700;
+}
 .keys-hint { margin: 1.25rem 0 0; color: var(--muted); font-size: .9rem; }
 
 .form-grid { display: grid; gap: 1rem; }
