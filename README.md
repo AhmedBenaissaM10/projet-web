@@ -1,7 +1,7 @@
 # QuizWeb
 
-Quiz interactif en HTML5, CSS3 et JavaScript vanilla, sans dépendance et sans build.
-QCM et Vrai/Faux, chrono de 20 secondes par question, score avec pénalité de temps, top 5 des scores et questions personnalisées.
+Quiz interactif en HTML5, CSS3, JavaScript et PHP.
+QCM et Vrai/Faux, chrono de 20 secondes par question, validation serveur, stockage MySQL et questions personnalisées.
 
 ## Liens
 
@@ -10,9 +10,20 @@ QCM et Vrai/Faux, chrono de 20 secondes par question, score avec pénalité de t
 
 ## Lancer le projet
 
-Ouvrir **`index.html`** par double-clic. Le projet utilise un script classique (`defer`), donc aucun serveur local, aucune installation et aucune étape de compilation ne sont nécessaires.
+Placer le projet dans le dossier web d'un serveur PHP équipé de PDO MySQL, puis ouvrir `index.html` via une URL HTTP.
+PHP initialise automatiquement la base et les tables configurées ci-dessous.
 
-Une connexion internet est seulement utile pour charger les polices Google Fonts ; le quiz reste utilisable hors ligne avec les polices système.
+Variables MySQL optionnelles :
+
+```text
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=quizweb
+MYSQL_USER=root
+MYSQL_PASSWORD=
+```
+
+Sans ces variables, l'application utilise les valeurs locales ci-dessus.
 
 ## Comment jouer
 
@@ -48,12 +59,14 @@ Le résultat est borné entre 30 et 100 points. Une mauvaise réponse ou un temp
 
 ```text
 index.html          # écran de jeu
-error.html          # page d'erreur 404
 rapport-quizweb.pdf # rapport du mini projet
 css/
   style.css         # feuille de style unique, en sections commentées
 js/
   script.js         # script unique, organisé en sections commentées
+php/
+  api.php           # API serveur et accès à MySQL
+  mysql.sql         # structure et données initiales de la base
 ```
 
 Le script suit cet ordre : configuration, questions, état, DOM, utilitaires, écrans, menu, quiz, résultats, questions personnalisées, événements, démarrage.
@@ -65,10 +78,16 @@ Dans `js/script.js`, section **2. Questions**, utiliser les deux fabriques :
 
 ```js
 // QCM
-qcm("js", "Question ?", ["Réponse A", "Réponse B", "Réponse C", "Réponse D"], 0, "Explication.")
+qcm(
+  "js",
+  "Question ?",
+  ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+  0,
+  "Explication.",
+);
 
 // Vrai / Faux (0 = Vrai, 1 = Faux)
-vf("css", "Affirmation ?", 1, "Explication.")
+vf("css", "Affirmation ?", 1, "Explication.");
 ```
 
 `topic` vaut `"html"`, `"css"` ou `"js"`, et `answer` est la position de la bonne réponse (en partant de 0).

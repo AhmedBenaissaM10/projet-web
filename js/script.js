@@ -21,369 +21,13 @@ const TOPICS = { html: "HTML", css: "CSS", js: "JavaScript" };
 const TYPE_LABELS = { qcm: "QCM", truefalse: "Vrai/Faux" };
 
 /* ============ 2. Questions ============ */
-const qcm = (topic, q, options, answer, explain) => ({
-  topic,
-  type: "qcm",
-  q,
-  options,
-  answer,
-  explain,
-});
-const vf = (topic, q, answer, explain) => ({
-  topic,
-  type: "truefalse",
-  q,
-  options: ["Vrai", "Faux"],
-  answer,
-  explain,
-});
-
-const QUESTIONS = [
-  /* HTML */
-  qcm(
-    "html",
-    "Quelle balise HTML5 sert à définir le contenu principal d'une page ?",
-    ["<section>", "<main>", "<article>", "<div>"],
-    1,
-    "<main> représente le contenu principal unique de la page.",
-  ),
-  qcm(
-    "html",
-    "Quel attribut HTML rend une image accessible aux lecteurs d'écran ?",
-    ["title", "name", "alt", "label"],
-    2,
-    "L'attribut alt fournit une description textuelle de l'image.",
-  ),
-  qcm(
-    "html",
-    "Quelle balise sert à créer un lien hypertexte ?",
-    ["<link>", "<a>", "<href>", "<nav>"],
-    1,
-    '<a href="..."> crée un lien. <link> relie une ressource externe.',
-  ),
-  qcm(
-    "html",
-    "Quel attribut rend un champ de formulaire obligatoire ?",
-    ["required", "mandatory", "needed", "validate"],
-    0,
-    "required empêche l'envoi du formulaire tant que le champ est vide.",
-  ),
-  qcm(
-    "html",
-    "Quelle balise sémantique représente un pied de page ?",
-    ["<bottom>", "<footer>", "<end>", "<section>"],
-    1,
-    "<footer> contient les informations de fin de page ou de section.",
-  ),
-  qcm(
-    "html",
-    "Quelle est la déclaration du type de document en HTML5 ?",
-    ["<!DOCTYPE html>", "<!DOCTYPE HTML5>", "<html5>", "<!HTML version=5>"],
-    0,
-    "<!DOCTYPE html> place le navigateur en mode standard.",
-  ),
-  qcm(
-    "html",
-    "Quelle balise définit le titre de plus haut niveau dans le contenu ?",
-    ["<h1>", "<head>", "<header>", "<title>"],
-    0,
-    "<h1> est le titre principal. <title> s'affiche dans l'onglet.",
-  ),
-  qcm(
-    "html",
-    "Quel élément regroupe des champs de formulaire liés, avec une légende ?",
-    ["<fieldset>", "<group>", "<section>", "<form-group>"],
-    0,
-    "<fieldset> regroupe les champs et <legend> lui donne un titre.",
-  ),
-  qcm(
-    "html",
-    "Quelle balise crée une liste ordonnée (numérotée) ?",
-    ["<ul>", "<ol>", "<li>", "<dl>"],
-    1,
-    "<ol> numérote ses éléments <li>. <ul> crée une liste à puces.",
-  ),
-  qcm(
-    "html",
-    "Quel attribut relie un <label> à son champ de formulaire ?",
-    ["for", "name", "href", "target"],
-    0,
-    '<label for="email"> correspond au champ id="email".',
-  ),
-  vf(
-    "html",
-    "La balise <section> fait partie des balises sémantiques HTML5.",
-    0,
-    "<section> décrit une section thématique du document.",
-  ),
-  vf(
-    "html",
-    "La balise <div> possède une signification sémantique précise.",
-    1,
-    "<div> est un conteneur générique, sans sens particulier.",
-  ),
-  vf(
-    "html",
-    "L'attribut href indique la destination d'un lien.",
-    0,
-    '<a href="page.html"> pointe vers page.html.',
-  ),
-  vf(
-    "html",
-    "Les noms de balises HTML sont sensibles à la casse.",
-    1,
-    "HTML est insensible à la casse : <MAIN> et <main> sont équivalents.",
-  ),
-  vf(
-    "html",
-    "Un élément <label> peut être associé à un champ grâce à son attribut for.",
-    0,
-    'for="email" relie le label au champ dont l\'id est email.',
-  ),
-  vf(
-    "html",
-    "Il est recommandé de n'utiliser qu'un seul <h1> par page.",
-    0,
-    "Un <h1> unique clarifie la structure du document.",
-  ),
-
-  /* CSS */
-  qcm(
-    "css",
-    "Quelle propriété CSS active le modèle Flexbox sur un conteneur ?",
-    ["display: flex", "position: flex", "flex: container", "layout: flex"],
-    0,
-    "display: flex sur le parent rend ses enfants flexibles.",
-  ),
-  qcm(
-    "css",
-    "Quelle fonction CSS crée une grille de 3 colonnes de largeur égale ?",
-    [
-      "grid-template-columns: repeat(3, 1fr)",
-      "grid-columns: 3",
-      "columns: grid(3)",
-      "display: grid(3)",
-    ],
-    0,
-    "repeat(3, 1fr) répète 3 colonnes à parts égales.",
-  ),
-  qcm(
-    "css",
-    "Quelle media query cible les écrans de 600px de large ou moins ?",
-    [
-      "@media (min-width: 600px)",
-      "@media (max-width: 600px)",
-      "@screen (600px)",
-      "@media (width > 600)",
-    ],
-    1,
-    "max-width: 600px s'applique jusqu'à 600px de largeur.",
-  ),
-  qcm(
-    "css",
-    "Quelle propriété modifie l'espace entre le contenu d'un élément et sa bordure ?",
-    ["margin", "padding", "gap", "spacing"],
-    1,
-    "padding agit à l'intérieur de la bordure ; margin agit à l'extérieur.",
-  ),
-  qcm(
-    "css",
-    "Quelle valeur de box-sizing inclut le padding et la bordure dans la largeur ?",
-    ["content-box", "border-box", "padding-box", "inherit"],
-    1,
-    "Avec border-box, width: 200px inclut padding et bordure.",
-  ),
-  qcm(
-    "css",
-    "Quelle unité est relative à la taille de police de l'élément racine ?",
-    ["em", "px", "rem", "vh"],
-    2,
-    "rem se calcule à partir de la police de <html> ; em dépend du parent.",
-  ),
-  qcm(
-    "css",
-    "Quelle propriété CSS contrôle l'ordre d'empilement des éléments positionnés ?",
-    ["z-index", "order", "stack", "layer"],
-    0,
-    "z-index décide quel élément passe devant.",
-  ),
-  qcm(
-    "css",
-    "Quelle pseudo-classe cible un élément quand la souris le survole ?",
-    [":hover", ":active", ":focus", ":over"],
-    0,
-    ":hover s'applique au survol, :active pendant le clic.",
-  ),
-  qcm(
-    "css",
-    "Quelle valeur de position garde un élément fixe pendant le défilement ?",
-    ["relative", "absolute", "fixed", "static"],
-    2,
-    "position: fixed positionne l'élément par rapport à la fenêtre.",
-  ),
-  qcm(
-    "css",
-    "Quelle propriété Flexbox aligne les éléments sur l'axe principal ?",
-    ["align-items", "justify-content", "align-content", "flex-flow"],
-    1,
-    "justify-content agit sur l'axe principal, align-items sur l'axe secondaire.",
-  ),
-  vf(
-    "css",
-    "box-sizing: border-box inclut le padding et la bordure dans la largeur déclarée.",
-    0,
-    "width: 200px reste 200px au total, padding et bordure compris.",
-  ),
-  vf(
-    "css",
-    "La propriété margin crée de l'espace à l'intérieur de la bordure d'un élément.",
-    1,
-    "C'est padding qui crée l'espace interne ; margin agit à l'extérieur.",
-  ),
-  vf(
-    "css",
-    "L'unité rem est relative à la taille de police de l'élément racine.",
-    0,
-    "1rem correspond à la taille de police de <html>.",
-  ),
-  vf(
-    "css",
-    "Flexbox permet d'aligner des éléments sur un axe principal et un axe secondaire.",
-    0,
-    "justify-content et align-items travaillent sur ces deux axes.",
-  ),
-  vf(
-    "css",
-    "Une media query max-width: 600px s'applique aux écrans plus larges que 600px.",
-    1,
-    "max-width cible les écrans de 600px ou moins.",
-  ),
-  vf(
-    "css",
-    "La pseudo-classe :focus cible un élément survolé par la souris.",
-    1,
-    ":focus s'applique quand l'élément reçoit le focus ; :hover gère le survol.",
-  ),
-
-  /* JavaScript */
-  qcm(
-    "js",
-    "Que renvoie typeof null en JavaScript ?",
-    ['"null"', '"undefined"', '"object"', '"number"'],
-    2,
-    'Bug historique du langage : typeof null renvoie "object".',
-  ),
-  qcm(
-    "js",
-    "Quelle méthode ajoute un élément à la fin d'un tableau ?",
-    ["shift()", "push()", "pop()", "unshift()"],
-    1,
-    "push() ajoute à la fin ; pop() retire le dernier.",
-  ),
-  qcm(
-    "js",
-    "Quel mot-clé déclare une variable dont la valeur ne peut pas être réassignée ?",
-    ["var", "let", "const", "static"],
-    2,
-    "const empêche la réassignation, mais un objet reste modifiable.",
-  ),
-  qcm(
-    "js",
-    "Quel opérateur compare la valeur et le type, sans conversion ?",
-    ["==", "===", "=", "!="],
-    1,
-    '=== est la comparaison stricte : 5 === "5" vaut false.',
-  ),
-  qcm(
-    "js",
-    "Quelle méthode transforme chaque élément et renvoie un nouveau tableau ?",
-    ["forEach()", "map()", "filter()", "reduce()"],
-    1,
-    "map() transforme chaque élément ; filter() en garde une partie.",
-  ),
-  qcm(
-    "js",
-    "Quelle méthode attache un écouteur d'événement à un élément ?",
-    ["addEventListener()", "onEvent()", "listen()", "attachEvent()"],
-    0,
-    'element.addEventListener("click", handler) est la méthode standard.',
-  ),
-  qcm(
-    "js",
-    "Quelle méthode convertit une chaîne JSON en objet JavaScript ?",
-    ["JSON.stringify()", "JSON.parse()", "JSON.object()", "Object.from()"],
-    1,
-    "JSON.parse() lit le texte JSON ; stringify() fait l'inverse.",
-  ),
-  qcm(
-    "js",
-    "Que renvoie Array.isArray([]) ?",
-    ["true", "false", '"array"', "undefined"],
-    0,
-    'C\'est le test fiable, car typeof [] renvoie "object".',
-  ),
-  qcm(
-    "js",
-    "Quel mot-clé attend le résultat d'une promesse dans une fonction async ?",
-    ["wait", "await", "yield", "then"],
-    1,
-    "await met la fonction en pause jusqu'à la résolution de la promesse.",
-  ),
-  qcm(
-    "js",
-    "Quelle méthode renvoie le premier élément correspondant à un sélecteur CSS ?",
-    [
-      "getElementById()",
-      "querySelector()",
-      "getElementsByClassName()",
-      "findElement()",
-    ],
-    1,
-    "querySelector() accepte n'importe quel sélecteur CSS.",
-  ),
-  vf(
-    "js",
-    "const empêche la réassignation d'une variable.",
-    0,
-    "const interdit de réaffecter la variable.",
-  ),
-  vf(
-    "js",
-    "L'opérateur === compare uniquement les valeurs, sans tenir compte du type.",
-    1,
-    "=== compare valeur et type ; c'est == qui convertit.",
-  ),
-  vf(
-    "js",
-    'typeof null renvoie "object".',
-    0,
-    "Comportement historique conservé pour la compatibilité du Web.",
-  ),
-  vf(
-    "js",
-    "JSON.parse() transforme un objet JavaScript en chaîne de caractères.",
-    1,
-    "C'est JSON.stringify() qui sérialise ; parse() fait l'inverse.",
-  ),
-  vf(
-    "js",
-    "Array.isArray() permet de vérifier qu'une valeur est un tableau.",
-    0,
-    'C\'est le test fiable, car typeof [] renvoie "object".',
-  ),
-  vf(
-    "js",
-    "addEventListener() permet d'attacher un gestionnaire d'événement à un élément.",
-    0,
-    'element.addEventListener("click", handler) enregistre une fonction.',
-  ),
-];
 
 /* ============ 3. État ============ */
 const state = {
   custom: loadCustomQuestions(),
   bestScores: loadBestScores(),
   serverQuestions: [],
+  serverError: false,
   deck: [],
   index: 0,
   score: 0,
@@ -523,7 +167,15 @@ async function api(action, body = null) {
       }
     : { method: "GET" };
   const url = body ? "php/api.php" : `php/api.php?action=${encodeURIComponent(action)}`;
-  const response = await fetch(url, options);
+  let response;
+  try {
+    response = await fetch(url, options);
+  } catch {
+    throw new Error("Internal server error");
+  }
+  if (!response.ok && response.status >= 500) {
+    throw new Error("Internal server error");
+  }
   const text = await response.text();
   let data;
   try {
@@ -537,6 +189,9 @@ async function api(action, body = null) {
     );
   }
   if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error("Internal server error");
+    }
     throw new Error(
       data.detail
         ? `${data.error} ${data.detail}`
@@ -549,12 +204,15 @@ async function api(action, body = null) {
 async function loadFromServer() {
   try {
     const data = await api("load");
+    state.serverError = false;
     state.serverQuestions = Array.isArray(data.questions) ? data.questions : [];
     if (Array.isArray(data.scores) && data.scores.length) {
       state.bestScores = data.scores;
       writeStorage(STORAGE_BEST, data.scores);
     }
   } catch (error) {
+    state.serverError = true;
+    state.serverQuestions = [];
     console.warn(error.message);
   }
   refreshMenu();
@@ -627,8 +285,7 @@ function showScreen(name) {
 
 /* ============ 7. Menu ============ */
 function allQuestions() {
-  if (state.serverQuestions.length) return state.serverQuestions;
-  return QUESTIONS.concat(state.custom);
+  return state.serverQuestions;
 }
 
 function selectedTopics() {
@@ -669,14 +326,21 @@ function refreshMenu() {
   el.count.value = String(Math.min(Math.max(wanted, 1), el.count.max));
   el.countOut.textContent = el.count.value;
 
-  if (topics.length === 0) {
+  if (state.serverError) {
+    el.poolInfo.textContent =
+      "ERREUR : impossible de charger les questions. Vérifie la connexion au serveur, puis actualise la page.";
+    el.poolInfo.className = "hint error";
+  } else if (topics.length === 0) {
     el.poolInfo.textContent = "Choisis au moins un thème pour commencer.";
+    el.poolInfo.className = "hint";
   } else if (available === 0) {
     el.poolInfo.textContent =
       "Aucune question disponible pour ce choix. Ajoutes-en une.";
+    el.poolInfo.className = "hint";
   } else {
     const plural = available > 1 ? "s" : "";
     el.poolInfo.textContent = `${available} question${plural} disponible${plural} (${labels.join(" + ")}).`;
+    el.poolInfo.className = "hint";
   }
 
   renderBestScores();
