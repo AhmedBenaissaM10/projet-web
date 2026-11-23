@@ -14,8 +14,7 @@ register_shutdown_function(function (): void {
             header('Content-Type: application/json; charset=utf-8');
         }
         echo json_encode([
-            'error' => 'Erreur PHP interne.',
-            'detail' => $error['message'],
+                'error' => 'Internal server error',
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 });
@@ -63,33 +62,10 @@ function db(): PDO {
     return $pdo;
 }
 
-function seed_questions(PDO $pdo): void {
-    $count = (int) $pdo->query('SELECT COUNT(*) FROM questions')->fetchColumn();
-    if ($count > 0) return;
-
-    $questions = [
-        ['html', 'qcm', 'Quelle balise HTML5 definit le contenu principal ?', ['section', 'main', 'article', 'div'], 1, '<main> represente le contenu principal unique.'],
-        ['html', 'qcm', 'Quel attribut rend une image accessible ?', ['title', 'name', 'alt', 'label'], 2, 'alt fournit une description textuelle.'],
-        ['html', 'truefalse', 'La balise section est semantique.', ['Vrai', 'Faux'], 0, 'section decrit une section thematique.'],
-        ['css', 'qcm', 'Quelle propriete active Flexbox ?', ['display: flex', 'position: flex', 'flex: container', 'layout: flex'], 0, 'Le conteneur utilise display: flex.'],
-        ['css', 'qcm', 'Quel box-sizing inclut la bordure dans la largeur ?', ['content-box', 'border-box', 'padding-box', 'inherit'], 1, 'border-box inclut padding et bordure.'],
-        ['css', 'truefalse', 'max-width: 600px cible les ecrans de plus de 600px.', ['Vrai', 'Faux'], 1, 'max-width cible 600px ou moins.'],
-        ['js', 'qcm', 'Quelle methode ajoute un element a la fin d\'un tableau ?', ['shift()', 'push()', 'pop()', 'unshift()'], 1, 'push() ajoute a la fin.'],
-        ['js', 'qcm', 'Quel operateur compare aussi le type ?', ['==', '===', '=', '!='], 1, '=== est la comparaison stricte.'],
-        ['js', 'truefalse', 'JSON.parse() transforme du texte JSON en objet JavaScript.', ['Vrai', 'Faux'], 0, 'JSON.parse() deserialise le texte JSON.'],
-    ];
-
-    $stmt = $pdo->prepare('INSERT INTO questions (topic, type, question, options, answer, explanation) VALUES (?, ?, ?, ?, ?, ?)');
-    foreach ($questions as $q) {
-        $stmt->execute([$q[0], $q[1], $q[2], json_encode($q[3], JSON_UNESCAPED_UNICODE), $q[4], $q[5]]);
-    }
-}
-
 try {
     $pdo = db();
-    seed_questions($pdo);
 } catch (Throwable $e) {
-    json_response(['error' => 'Erreur de base de donnees.', 'detail' => $e->getMessage()], 500);
+    json_response(['error' => 'Internal server error'], 500);
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
